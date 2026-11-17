@@ -51,7 +51,10 @@ export const sendEmail = async ({
     });
 
     // Create verification/reset link
-    const emailLink = `${process.env.DOMAIN}/verifyemail?token=${token}&userId=${userId}`;
+    const emailLink =
+      emailType === "VERIFY"
+        ? `${process.env.DOMAIN}/verifyemail?token=${token}&userId=${userId}`
+        : `${process.env.DOMAIN}/resetpassword?token=${token}&userId=${userId}`;
 
     // Send email
     const mailResponse = await transporter.sendMail({

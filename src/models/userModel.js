@@ -27,11 +27,23 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    forgotPasswordToken: String,
-    forgotPasswordTokenExpiry: Date,
+    // Forgot Password Fields
+    forgotPasswordToken: {
+      type: String,
+    },
 
-    verifyToken: String,
-    verifyTokenExpiry: Date,
+    forgotPasswordTokenExpiry: {
+      type: Number,
+    },
+
+    // Email Verification Fields
+    verifyToken: {
+      type: String,
+    },
+
+    verifyTokenExpiry: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

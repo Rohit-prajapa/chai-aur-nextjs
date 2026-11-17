@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { connect } from "@/dbconfig/dbconfig";
 import User from "@/models/userModel";
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { message: "Email and password are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -28,21 +27,33 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { message: "User does not exist" },
-        { status: 404 }
+        { status: 404 },
+      );
+    }
+
+    // Check email verification
+    if (!user.isVerified) {
+      return NextResponse.json(
+        {
+          message: "Please verify your email before logging in.",
+        },
+        { status: 403 },
       );
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return NextResponse.json(
         { message: "Invalid password" },
-        { status: 401 }
+        { status: 401 },
       );
+    }
+
+    // Check JWT secret
+    if (!process.env.TOKEN_SECRET) {
+      throw new Error("TOKEN_SECRET is missing in environment variables");
     }
 
     // Generate JWT token
@@ -51,8 +62,8 @@ export async function POST(request: NextRequest) {
         id: user._id.toString(),
         email: user.email,
       },
-      process.env.TOKEN_SECRET!,
-      { expiresIn: "1d" }
+      process.env.TOKEN_SECRET,
+      { expiresIn: "1d" },
     );
 
     // Create response
@@ -61,12 +72,12 @@ export async function POST(request: NextRequest) {
         message: "Login successful",
         success: true,
         user: {
-          id: user._id,
+          id: user._id.toString(),
           username: user.username,
           email: user.email,
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
 
     // Store token in HTTP-only cookie
@@ -79,13 +90,12 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-
   } catch (error) {
     console.error("Login Error:", error);
 
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
